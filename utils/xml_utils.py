@@ -1,9 +1,14 @@
 import logging
 from lxml import etree
 
+# Настройка логирования
 logger = logging.getLogger('uvicorn.error')
 
 def modify_uri(response_content: bytes) -> bytes:
+    """
+    Функция для модификации URI в ответе ONVIF.
+    Добавляет порт 554 к URI, если он отсутствует.
+    """
     resp = response_content
     try:
         root = etree.fromstring(response_content)
@@ -20,7 +25,6 @@ def modify_uri(response_content: bytes) -> bytes:
                                   pretty_print=False,
                                   xml_declaration=True,
                                   encoding="utf-8")
-
     except etree.XMLSyntaxError as parse_error:
         logger.error(f"Parse failed XML с lxml: {parse_error}")
     except Exception as e:
@@ -28,6 +32,10 @@ def modify_uri(response_content: bytes) -> bytes:
     return resp
 
 def extract_pantilt_values(response_content: bytes) -> dict[str, str]:
+    """
+    Извлекает координаты Pan/Tilt из XML-ответа.
+    Возвращает словарь с координатами x, y и статусом PanTilt.
+    """
     attributes = {'x': '0', 'y': '0', 'PanTilt': "Stop"}
     try:
         root = etree.fromstring(response_content)
@@ -38,20 +46,13 @@ def extract_pantilt_values(response_content: bytes) -> dict[str, str]:
         }
 
         pantilt_elements = root.findall(".//schema:PanTilt", namespaces)
-        '''
-            Find coordinates command PTZ
-            example: in dict {'x': '1', 'y': '0', 'PanTilt': 'Start'}
-            go to left and etc.
-            
-        '''
+        # Найденные координаты команд PTZ (например, движение влево и т.д.)
         for elem in pantilt_elements:
             if elem is not None:
                 attributes['x'] = elem.attrib.get('x')
                 attributes['y'] = elem.attrib.get('y')
                 attributes['PanTilt'] = "Start"
                 logger.debug(f"Found PanTilt: x={attributes['x']}, y={attributes['y']}")
-
-
     except etree.XMLSyntaxError as parse_error:
         logger.error(f"Parse failed XML с lxml: {parse_error}")
     except Exception as e:
