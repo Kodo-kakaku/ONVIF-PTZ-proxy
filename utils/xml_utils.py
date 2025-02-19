@@ -1,9 +1,14 @@
 import logging
 from lxml import etree
 
+# Logging configuration
 logger = logging.getLogger('uvicorn.error')
 
 def modify_uri(response_content: bytes) -> bytes:
+    """
+    Function to modify the URI in an ONVIF response.
+    Adds port 554 to the URI if it is missing.
+    """
     resp = response_content
     try:
         root = etree.fromstring(response_content)
@@ -20,14 +25,17 @@ def modify_uri(response_content: bytes) -> bytes:
                                   pretty_print=False,
                                   xml_declaration=True,
                                   encoding="utf-8")
-
     except etree.XMLSyntaxError as parse_error:
-        logger.error(f"Parse failed XML с lxml: {parse_error}")
+        logger.error(f"Parse failed XML with lxml: {parse_error}")
     except Exception as e:
         logger.error(f"Parse failed: {e}")
     return resp
 
 def extract_pantilt_values(response_content: bytes) -> dict[str, str]:
+    """
+    Extracts Pan/Tilt coordinates from an XML response.
+    Returns a dictionary with x, y coordinates and PanTilt status.
+    """
     attributes = {'x': '0', 'y': '0', 'PanTilt': "Stop"}
     try:
         root = etree.fromstring(response_content)
@@ -38,22 +46,15 @@ def extract_pantilt_values(response_content: bytes) -> dict[str, str]:
         }
 
         pantilt_elements = root.findall(".//schema:PanTilt", namespaces)
-        '''
-            Find coordinates command PTZ
-            example: in dict {'x': '1', 'y': '0', 'PanTilt': 'Start'}
-            go to left and etc.
-            
-        '''
+        # Extracted coordinates for PTZ commands (e.g., move left, etc.)
         for elem in pantilt_elements:
             if elem is not None:
                 attributes['x'] = elem.attrib.get('x')
                 attributes['y'] = elem.attrib.get('y')
                 attributes['PanTilt'] = "Start"
                 logger.debug(f"Found PanTilt: x={attributes['x']}, y={attributes['y']}")
-
-
     except etree.XMLSyntaxError as parse_error:
-        logger.error(f"Parse failed XML с lxml: {parse_error}")
+        logger.error(f"Parse failed XML with lxml: {parse_error}")
     except Exception as e:
         logger.error(f"Parse failed: {e}")
     return attributes
