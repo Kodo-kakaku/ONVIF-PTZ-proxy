@@ -1,3 +1,5 @@
+from typing import Any, Coroutine
+
 import httpx
 import logging
 from fastapi import Request, Response
@@ -5,13 +7,7 @@ from fastapi import Request, Response
 # Logging configuration
 logger = logging.getLogger('uvicorn.error')
 
-async def handle_onvif_request(request: Request,
-                               modify_response=None) -> Response:
-    """
-    Function to handle ONVIF requests.
-    Receives an incoming HTTP request, forwards it to the camera, and returns the response.
-    Allows modifying the response using the provided function.
-    """
+async def camera_request(request: Request) -> Response:
     try:
         # Retrieve request body
         request_body = await request.body()
@@ -24,27 +20,7 @@ async def handle_onvif_request(request: Request,
 
         # Forward the request to the camera
         async with httpx.AsyncClient() as client:
-            camera_response = await client.post(camera_url,
-                                                headers=request.headers,
-                                                data=request_body)
-
-        # Log response details
-        logger.debug(f"Headers of response:\n{camera_response.headers}")
-        logger.debug(f"Body of response:\n{camera_response.content.decode('utf-8')}")
-
-        # Modify response if needed
-        content = camera_response.content
-        response_headers = dict(camera_response.headers)
-        if modify_response:
-            content = modify_response(content)
-            response_headers["content-length"] = str(len(content))
-
-        # Return the response to the client
-        return Response(
-            content=content,
-            status_code=camera_response.status_code,
-            headers=response_headers,
-        )
+            return await client.post(camera_url, headers=request.headers, data=request_body)
 
     except httpx.RequestError as exc:
         # Handle request errors
