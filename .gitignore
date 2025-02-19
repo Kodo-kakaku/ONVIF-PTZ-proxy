@@ -1,3 +1,5 @@
+__pycache__/
+**/__pycache__/
 *.py[cod]
 *.egg-info/
 *.egg
@@ -12,5 +14,3 @@ venv1/
 .env
 .DS_Store
 Thumbs.db
-__pycache__/
-**/__pycache__/
