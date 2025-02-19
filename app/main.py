@@ -11,7 +11,7 @@ app = FastAPI(title="ONVIF PTZ Proxy",
               version="1.0.0")
 
 # Including ONVIF API routes
-app.include_router(routes.route, prefix="/onvif")
+app.include_router(routes.route)
 
 # Main application entry point
 if __name__ == "__main__":
