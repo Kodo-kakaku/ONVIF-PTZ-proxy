@@ -3,17 +3,17 @@ import logging
 from fastapi import FastAPI
 from api.v1 import routes
 
-# Настройка логирования
+# Logging configuration
 logger = logging.getLogger('uvicorn.error')
 
-# Создание экземпляра FastAPI
+# Creating a FastAPI instance
 app = FastAPI(title="ONVIF PTZ Proxy",
               version="1.0.0")
 
-# Подключение маршрутов ONVIF API
+# Including ONVIF API routes
 app.include_router(routes.route, prefix="/onvif")
 
-# Основная точка входа в приложение
+# Main application entry point
 if __name__ == "__main__":
-    # Запуск сервера Uvicorn с хостом 0.0.0.0 и портом 80
+    # Starting the Uvicorn server with host 0.0.0.0 and port 80
     uvicorn.run(app, host="0.0.0.0", port=80)
