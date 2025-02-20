@@ -1,4 +1,3 @@
-from utils.xml_utils import modify_uri
 from fastapi import Request, Response
 from utils.request_handler import camera_request
 from utils.xml_utils import modify_uri
@@ -11,10 +10,10 @@ async def onvif_request(request: Request) -> Response:
 
     content = modify_uri(camera_response.content)
     response_headers = dict(camera_response.headers)
-    response_headers["content-length"] = str(len(response_headers))
+    response_headers["content-length"] = str(len(content))
 
-    return await Response(
+    return Response(
         content=content,
         status_code=camera_response.status_code,
-        headers=camera_response.headers
+        headers=response_headers
     )

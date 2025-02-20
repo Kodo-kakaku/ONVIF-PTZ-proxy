@@ -4,6 +4,8 @@ from lxml import etree
 # Logging configuration
 logger = logging.getLogger('uvicorn.error')
 
+RTSP_PORT = "554"
+
 def modify_uri(response_content: bytes) -> bytes:
     """
     Function to modify the URI in an ONVIF response.
@@ -19,9 +21,9 @@ def modify_uri(response_content: bytes) -> bytes:
             parts = uri_element.text.split('/')
             logger.debug(f"URI parts before modification: {parts}")
             if len(parts) > 2 and ':' not in parts[2]:
-                parts[2] = f"{parts[2]}:554"
+                parts[2] = f"{parts[2]}:{RTSP_PORT}"
                 uri_element.text = '/'.join(parts)
-            resp = etree.tostring(root,
+                resp = etree.tostring(root,
                                   pretty_print=False,
                                   xml_declaration=True,
                                   encoding="utf-8")
