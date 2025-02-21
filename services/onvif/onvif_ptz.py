@@ -1,7 +1,8 @@
 from fastapi import Request, Response
+
+from services.ptz.ptz_service import PtzService
 from utils.request_handler import camera_request
 from utils.xml_utils import extract_pantilt_values
-from services.ptz import ptz_service
 
 # Function to handle general ONVIF requests
 # Receives an incoming HTTP request, forwards it to the camera, and modifies the URI in the response if needed
@@ -12,7 +13,12 @@ async def onvif_ptz_request(request: Request) -> Response:
 
     request_body = await request.body()
     ptz_command = extract_pantilt_values(request_body)
-    ptz_service.move(float(ptz_command['x']), float(ptz_command['y']), ptz_command["PanTilt"])
+
+    # Move PTZ pan tilt
+    if ptz_command["PanTilt"] is "Start":
+        coord_x = float(ptz_command['x'])
+        coord_y = float(ptz_command['y'])
+        await PtzService.move(coord_x, coord_y)
 
     return Response(
         content=camera_response.content,

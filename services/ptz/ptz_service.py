@@ -1,25 +1,21 @@
+import asyncio
 
+class PtzService:
+    @staticmethod
+    async def move(x: float, y: float) -> None:
+        tasks = []
+        if x != 0:
+            tasks.append(PtzService.move_x_motor(x))
+        if y != 0:
+            tasks.append(PtzService.move_y_motor(y))
 
-def move(x: float, y: float, action: str):
-    if action == 'Start':
-        if x > 0:
-            move_right()
-        if x < 0:
-            move_left()
-        if y > 0:
-            move_up()
-        if y < 0:
-            move_down()
+        if tasks:
+            await asyncio.gather(*tasks)
 
+    @staticmethod
+    async def move_x_motor(x: float) -> None:
+        print(f"Move ptz platform on {x} degrees.")
 
-def move_left():
-    print("Moving left")
-
-def move_right():
-    print("Moving right")
-
-def move_up():
-    print("Moving up")
-
-def move_down():
-    print("Moving down")
+    @staticmethod
+    async def move_y_motor(y: float) -> None:
+        print(f"Move ptz platform on {y} degrees.")
